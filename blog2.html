@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>题解：UVA10437 Playing With Fraction</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://cdn.luogu.com.cn/upload/image_hosting/oyvt89i1.png" media="screen">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd" crossorigin="anonymous"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <script>
+		document.addEventListener("DOMContentLoaded", function() {
+			renderMathInElement(document.body, {
+			    delimiters: [
+				    {left: '$$', right: '$$', display: true},
+				    {left: '$', right: '$', display: false},
+				    {left: '\\(', right: '\\)', display: false},
+				    {left: '\\[', right: '\\]', display: true}
+			    ],
+			    throwOnError : false
+			});
+		});
+	</script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="left">
+        <img class="avatar" src="https://cdn.luogu.com.cn/upload/image_hosting/oyvt89i1.png">
+        <h1 class="left">ReJustin</h1>
+        <h2 class="left">蒟蒻 ReJustin 的博客</h2>
+        <ul class="main">
+            <img class="small" src="https://cdn.luogu.com.cn/upload/image_hosting/lz0etnms.png"><li><a class="luogu" href="https://www.luogu.com.cn/user/993236" target="_blank">洛谷：Restart_Justin</a></li><br>
+            <img class="small" src="https://cdn.luogu.com.cn/upload/image_hosting/lz0etnms.png"><li><a class="luogu" href="https://codeforces.com/profile/Justin2014" target="_blank">Codeforces：Justin2014</a></li><br>
+            <img class="small" src="https://cdn.luogu.com.cn/upload/image_hosting/lz0etnms.png"><li><a class="luogu" href="https://atcoder.jp/users/Restart_Justin" target="_blank">AtCoder：Restart_Justin</a></li><br>
+        </ul>
+        <p style="color:white;font-size:1.4em;font-family:黑体;text-align:center">逆天团队：</p>
+        <ul class="main">
+            <img class="small" src="https://cdn.luogu.com.cn/upload/image_hosting/lz0etnms.png"><li><a class="luogu" href="https://bgithub.xyz/InverseSkyTeam" target="_blank">Github：InverseSkyTeam</a></li><br>
+            <img class="small" src="https://cdn.luogu.com.cn/upload/image_hosting/lz0etnms.png"><li><a class="luogu" href="https://www.luogu.com.cn/team/46415" target="_blank">洛谷：INS逆天团队</a></li><br>
+        </ul>
+    </div>
+	<h1 class="title">题解：UVA10437 Playing With Fraction</h1>
+    <div id="nav"><a href="https://www.luogu.com.cn/problem/UVA10437" class="blog" target="_blank">题目传送门</a>
+题意：
+给出若干个只包含加减乘除和分数的表达式，用 <pre>a|b</pre> 表示分数 $\dfrac{a}{b}$，要求这些表达式的值，如果输入中分母为零，输出 <pre>INVALID</pre>。<b>输入可能有多余的空格。</b>
+思路：
+本题是一个大模拟，首先我们先封装一下分数。
+<details open>
+    <summary><span class="hint">ℹ</span>tips</summary>令 $f(x) = x$ 的倒数。
+    $f(\dfrac{a}{b}) = \dfrac{b}{a}$
+
+    $\dfrac{a}{b} + \dfrac{c}{d} = \dfrac{ad + bc}{bd}$
+
+    $\dfrac{a}{b} - \dfrac{c}{d} = \dfrac{a}{b} + (-\dfrac{c}{d})$
+
+    $\dfrac{a}{b} \times \dfrac{c}{d} = \dfrac{ac}{bd}$
+
+    $\dfrac{a}{b} \div \dfrac{c}{d} = \dfrac{a}{b} \times f(\dfrac{c}{d})$
+
+</details>
+题目要求化为最简分数，所以我们定义一个函数 <pre>recip</pre>，用来约分和化简。
+<pre><code class="language-cpp">struct fraction {
+    // 分子  分母
+    LL nume, deno;
+    // 约分，化简
+    void adjust() {
+        if (deno == 0) {
+            if (flag)
+                cout << "INVALID\n";
+            flag = 0;
+            return ;
+        }
+        LL g = __gcd(deno, nume);
+        nume /= g;
+        deno /= g;
+        // 对于本题来说不需要的一个关于负数的小优化
+        if (deno < 0)
+            deno = -deno, nume = -nume;
+        if (nume == 0)
+            deno = 1;
+    }
+    // 构造函数
+    fraction(LL _nume = 0, LL _deno = 1) {
+        nume = _nume;
+        deno = _deno;
+        adjust();
+    }
+    fraction operator-() const {
+        return fraction(-nume, deno);
+    }
+    fraction operator+(fraction oth) const {
+        return fraction{nume * oth.deno + oth.nume * deno, deno * oth.deno};
+    }
+    fraction operator-(fraction oth) const {
+        return *this + -oth;
+    }
+    fraction operator*(fraction oth) const {
+        return fraction(nume * oth.nume, deno * oth.deno);
+    }
+    fraction recip() const {
+        return fraction(deno, nume);
+    }
+    fraction operator/(fraction oth) const {
+        return *this * oth.recip();
+    }
+};
+ostream &operator<<(ostream &c, fraction x) {
+    if (x.deno != 1)
+        return c << x.nume << "|" << x.deno;
+    else
+        return c << x.nume;
+} // 重载 cout</code></pre>
+接下来就按照<a href="https://www.luogu.com.cn/problem/P10473" class="blog" target="_blank">表达式计算4</a>的方法解析表达式了。有兴趣可以看看 LionBlaze 的题解（第一篇），讲的很透彻（本人与 ta 没有任何关系，只是推荐一下）。
+几个需要注意的点：<ul>
+<li>记得把多余的空格去掉。</li>
+<li>我们把 <pre>|</pre> 也当作运算符，解析后缀表达式的时候建两个栈 <pre>num</pre> 和 <pre>frac</pre>，分别表示表达式中的整数（分子、分母）与分数，遍历时将 <pre>|</pre> 运算符拎出来单独处理（<pre>frac.push_back({x, y});</pre>），其他运算符处理的是 <pre>frac</pre>，不是 <pre>num</pre>。</li>
+<li>输入可能不包含分母，这个时候我们需要自行添加 <pre>|1</pre>。</li>
+</ul>代码：
+为避免题解过长，我将代码放在了<a href="https://www.luogu.me/paste/3ra9klxt" class="blog" target="_blank">剪贴板</a>里，请自行查看。
+<time datetime="2025-07-30">2025/07/30</time>
+    </div>
+</body>
+</html>
